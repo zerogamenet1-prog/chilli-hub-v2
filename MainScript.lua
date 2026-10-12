@@ -1,174 +1,173 @@
--- ========================================================
--- 🥚 Ultimate Egg Stealer Pro (New UI/UX)
--- Features: ค้นหาไข่แพงสุด/ใหญ่สุด, วาร์ปทันที, กันบัคเกมค้าง
--- ========================================================
+-- ==========================================
+-- 🌶️ Chilli Hub - Ultimate Pro Translation Engine
+-- แปลไทยโดย : บาฟัค (God Tier Optimization & Bug Fixed)
+-- Version : Max (Anti-Lag, Auto-Cleanup, Placeholder Support)
+-- ==========================================
 
--- โหลด UI Library ที่ทันสมัยที่สุด (Rayfield)
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
-local Window = Rayfield:CreateWindow({
-   Name = "🥚 Egg Stealer Pro | V1",
-   LoadingTitle = "กำลังโหลดระบบขโมยไข่...",
-   LoadingSubtitle = "by YourName",
-   ConfigurationSaving = { Enabled = false },
-   KeySystem = false
-})
-
-local Tab = Window:CreateTab("🚀 เมนูหลัก", 4483362458) -- รหัสไอคอน
-
--- ========================================================
--- ตัวแปรระบบ
--- ========================================================
+-- 1. เตรียมบริการและ Bypass สำหรับ Executor ทุกประเภท
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
+local CoreGui = gethui and gethui() or game:GetService("CoreGui")
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-local _G = {}
-_G.AutoSteal = false
-_G.TeleportSpeed = "Instant" -- โหมดวาร์ป (Instant = ทันที)
-
--- ========================================================
--- ฟังก์ชันหลัก: ค้นหาไข่ที่แพงที่สุดและใหญ่ที่สุด
--- ========================================================
-local function GetBestEgg()
-    local bestEgg = nil
-    local highestValue = -1
-    local maxVolume = -1
-
-    -- ⚠️ สำคัญ: เปลี่ยน "workspace" เป็นโฟลเดอร์ที่เก็บไข่ในแมพของคุณเพื่อลดอาการแลค
-    -- เช่น workspace.Eggs หรือ workspace.Map.Spawns
-    local searchFolder = workspace 
-
-    for _, obj in ipairs(searchFolder:GetDescendants()) do
-        pcall(function()
-            -- เช็คว่าเป็นไข่ (ปรับชื่อ "Egg" ให้ตรงกับชื่อโมเดลไข่ในแมพ)
-            if obj:IsA("Model") or obj:IsA("BasePart") then
-                if string.match(string.lower(obj.Name), "egg") or obj:FindFirstChild("IsEgg") then
-                    
-                    -- สมมติว่าไข่มีค่า $ เก็บอยู่ใน NumberValue, IntValue หรือ Attribute
-                    local eggValue = 0
-                    if obj:FindFirstChild("Price") then
-                        eggValue = obj.Price.Value
-                    elseif obj:GetAttribute("Value") then
-                        eggValue = obj:GetAttribute("Value")
-                    end
-
-                    -- คำนวณขนาดของไข่ (กว้าง x ยาว x สูง)
-                    local eggSize = 0
-                    if obj:IsA("BasePart") then
-                        eggSize = obj.Size.X * obj.Size.Y * obj.Size.Z
-                    elseif obj:IsA("Model") and obj.PrimaryPart then
-                        eggSize = obj.PrimaryPart.Size.X * obj.PrimaryPart.Size.Y * obj.PrimaryPart.Size.Z
-                    end
-
-                    -- คัดกรอง: เอาไข่ที่แพงที่สุดก่อน ถ้าแพงเท่ากันเอาใบที่ใหญ่ที่สุด
-                    if eggValue > highestValue then
-                        highestValue = eggValue
-                        maxVolume = eggSize
-                        bestEgg = obj
-                    elseif eggValue == highestValue and eggSize > maxVolume then
-                        maxVolume = eggSize
-                        bestEgg = obj
-                    end
-                end
-            end
-        end)
+-- 2. ระบบเคลียร์การทำงานซ้ำ (Auto-Cleanup ป้องกันเกมแลคเมื่อรันซ้ำ)
+if _G.Chilli_Connections then
+    for _, conn in pairs(_G.Chilli_Connections) do
+        pcall(function() conn:Disconnect() end)
     end
-    
-    return bestEgg, highestValue
 end
+_G.Chilli_Connections = {} -- สร้างตารางเก็บ Event ไว้ลบในอนาคต
 
--- ========================================================
--- ฟังก์ชัน: วาร์ปความเร็วสูง (ป้องกันบัคตกแมพ)
--- ========================================================
-local function FastTeleport(targetPart)
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") and targetPart then
-        -- ใช้วิธีเปลี่ยน CFrame โดยตรงเพื่อความไวสูงสุด (ไร้ดีเลย์)
-        local targetPos = targetPart:IsA("Model") and targetPart.PrimaryPart.CFrame or targetPart.CFrame
-        
-        -- ยกตัวละครขึ้นเล็กน้อยป้องกันการติดพื้นหรือบัคจมดิน
-        char.HumanoidRootPart.CFrame = targetPos + Vector3.new(0, 3, 0)
-        
-        -- บังคับให้ความเร็วการตกเป็น 0 ป้องกันตายจากการวาร์ป
-        if char.HumanoidRootPart:FindFirstChild("VectorForce") == nil then
-            char.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+-- ==========================================
+-- 3. DICTIONARY (ตารางคำศัพท์ตายตัว)
+-- ==========================================
+local dict = {
+    ["Chilli Hub"] = "Chilli Hub : แปลโดย บาฟัค",
+    ["Farm"] = "🚜 ฟาร์ม",
+    ["Player"] = "🏃 ตัวละคร",
+    ["Egg Finder"] = "🔎 ค้นหาไข่",
+    ["Predictor"] = "🔮 คาดการณ์",
+    ["Progress"] = "📈 ความคืบหน้า",
+    ["Server"] = "🌐 เซิร์ฟเวอร์",
+    ["Misc"] = "⚙️ อื่นๆ",
+    ["Webhook"] = "🔗 เว็บฮุค",
+    ["Discord"] = "💬 ดิสคอร์ด",
+    ["Quick & Keys"] = "⚡ ทางลัดและปุ่มลัด",
+    ["Settings"] = "⚙️ ตั้งค่า",
+    ["Config"] = "📁 คอนฟิก",
+    ["Search"] = "🔎 ค้นหา",
+    ["Filter features..."] = "ค้นหาเมนู...",
+    ["Auto Buy Scramble Shop"] = "🛒 ซื้อของร้าน Scramble อัตโนมัติ",
+    ["Keep Samples"] = "💾 เก็บ Samples สำรอง",
+    ["Idle"] = "💤 ว่าง",
+    ["IDLE"] = "💤 ว่าง",
+    ["ACTIVE"] = "🟢 กำลังทำงาน",
+    -- วางคำศัพท์อื่นๆ ของคุณต่อลงมาตรงนี้ได้เลย...
+}
+
+-- ==========================================
+-- 4. PATTERN DICTIONARY (แปลแบบมีตัวแปร)
+-- ==========================================
+local patternDict = {
+    {"^Ends in (.*)$", "⏳ สิ้นสุดใน %1"},
+    {"^1 in (.*)$", "🎲 โอกาส 1 ใน %1"},
+    {"^Level (%d+)$", "⭐ เลเวล %1"},
+    {"^Found: (.*)$", "🔍 พบแล้ว: %1"},
+}
+
+-- ==========================================
+-- 5. TRANSLATION ENGINE (ระบบประมวลผล)
+-- ==========================================
+local translatedCache = {}
+for eng, thai in pairs(dict) do translatedCache[thai] = true end
+for _, pattern in pairs(patternDict) do translatedCache[pattern[2]] = true end
+
+local function Translate(text)
+    if type(text) ~= "string" or text == "" or text == " " then return text end
+    if translatedCache[text] then return text end
+
+    if dict[text] then return dict[text] end
+
+    for _, pattern in ipairs(patternDict) do
+        if string.match(text, pattern[1]) then
+            local translated = string.gsub(text, pattern[1], pattern[2])
+            translatedCache[translated] = true
+            return translated
         end
     end
+    return text
 end
 
--- ========================================================
--- ระบบลูปการทำงาน (Auto Farm)
--- ========================================================
-local function StartAutoSteal()
-    task.spawn(function()
-        while task.wait(0.1) do -- ดีเลย์ 0.1 วิ ป้องกันเกมค้าง
-            if not _G.AutoSteal then break end
+-- ==========================================
+-- 6. UI PROCESSOR (ฟังก์ชันจัดการหน้าต่าง UI)
+-- ==========================================
+local goodFonts = {Enum.Font.Gotham, Enum.Font.GothamMedium, Enum.Font.GothamBold, Enum.Font.BuilderSans}
+
+local function ProcessElement(element)
+    pcall(function()
+        -- จัดการเฉพาะ Text UI
+        if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
             
-            pcall(function()
-                local bestEgg, val = GetBestEgg()
-                if bestEgg then
-                    FastTeleport(bestEgg)
-                    
-                    -- วางโค้ดสำหรับกด E หรือรับของตรงนี้
-                    -- fireproximityprompt(bestEgg.ProximityPrompt)
-                    
-                    task.wait(0.5) -- รอให้ขโมยสำเร็จก่อนหาใบต่อไป
+            -- ปรับฟอนต์ไทยให้สวยงาม ไม่ตกขอบ
+            if not table.find(goodFonts, element.Font) then
+                element.Font = Enum.Font.GothamMedium
+            end
+
+            -- 6.1 แปลข้อความหลัก (.Text)
+            local currentText = element.Text
+            local translatedText = Translate(currentText)
+            if currentText ~= translatedText then
+                element.Text = translatedText
+            end
+            
+            -- 6.2 แปลข้อความช่องกรอก (.PlaceholderText) สำหรับ TextBox
+            if element:IsA("TextBox") then
+                local currentPlaceholder = element.PlaceholderText
+                local translatedPlaceholder = Translate(currentPlaceholder)
+                if currentPlaceholder ~= translatedPlaceholder then
+                    element.PlaceholderText = translatedPlaceholder
                 end
-            end)
+            end
+
+            -- 6.3 ดักจับการเปลี่ยนแปลงแบบ Real-Time
+            if not element:GetAttribute("ChilliTranslated_Max") then
+                element:SetAttribute("ChilliTranslated_Max", true)
+                
+                -- ตรวจจับเวลา Text เปลี่ยน (เช่น สถานะเปลี่ยน, เลขเงินเปลี่ยน)
+                local connText = element:GetPropertyChangedSignal("Text"):Connect(function()
+                    local newText = element.Text
+                    if not translatedCache[newText] then
+                        local newTranslated = Translate(newText)
+                        if newText ~= newTranslated then
+                            element.Text = newTranslated
+                        end
+                    end
+                end)
+                table.insert(_G.Chilli_Connections, connText)
+
+                -- ตรวจจับเวลา Placeholder เปลี่ยน
+                if element:IsA("TextBox") then
+                    local connPlaceholder = element:GetPropertyChangedSignal("PlaceholderText"):Connect(function()
+                        local newText = element.PlaceholderText
+                        if not translatedCache[newText] then
+                            local newTranslated = Translate(newText)
+                            if newText ~= newTranslated then
+                                element.PlaceholderText = newTranslated
+                            end
+                        end
+                    end)
+                    table.insert(_G.Chilli_Connections, connPlaceholder)
+                end
+            end
         end
     end)
 end
 
--- ========================================================
--- สร้างเมนู UI
--- ========================================================
-Tab:CreateToggle({
-   Name = "🚀 เปิดระบบขโมยไข่ (Auto Steal Best Egg)",
-   CurrentValue = false,
-   Flag = "Toggle_Steal",
-   Callback = function(Value)
-        _G.AutoSteal = Value
-        if Value then
-            Rayfield:Notify({
-                Title = "ระบบทำงาน",
-                Content = "กำลังสแกนหาไข่ที่แพงที่สุดในแมพ!",
-                Duration = 3,
-                Image = 4483362458,
-            })
-            StartAutoSteal()
-        else
-            Rayfield:Notify({
-                Title = "หยุดทำงาน",
-                Content = "ปิดระบบขโมยไข่แล้ว",
-                Duration = 2,
-                Image = 4483362458,
-            })
+-- ==========================================
+-- 7. INITIALIZATION (เริ่มระบบสแกน)
+-- ==========================================
+local function ScanTarget(targetGui)
+    task.spawn(function()
+        local descendants = targetGui:GetDescendants()
+        for i, obj in ipairs(descendants) do
+            ProcessElement(obj)
+            -- [ANTI-CRASH] พักสคริปต์ 0.01 วินาที ทุกๆ การสแกน UI 100 ชิ้น (กันเกมค้าง)
+            if i % 100 == 0 then task.wait() end
         end
-   end,
-})
+    end)
+    
+    -- เฝ้าระวัง UI ใหม่ที่จะเกิดขึ้น
+    local connAdded = targetGui.DescendantAdded:Connect(function(newObj)
+        task.defer(ProcessElement, newObj)
+    end)
+    table.insert(_G.Chilli_Connections, connAdded)
+end
 
-Tab:CreateButton({
-   Name = "🔍 ทดสอบสแกนหาไข่ที่แพงที่สุด (เช็คค่าสถานะ)",
-   Callback = function()
-        local egg, val = GetBestEgg()
-        if egg then
-            Rayfield:Notify({
-                Title = "พบเป้าหมาย!",
-                Content = "เจอไข่ราคา: $" .. tostring(val),
-                Duration = 5,
-                Image = 4483362458,
-            })
-            FastTeleport(egg)
-        else
-            Rayfield:Notify({
-                Title = "ไม่พบไข่",
-                Content = "ไม่มีไข่ในแมพ หรือตั้งชื่ออ้างอิงไม่ตรง",
-                Duration = 3,
-                Image = 4483362458,
-            })
-        end
-   end,
-})
+local function StartProEngine()
+    -- สแกนทั้ง CoreGui (Hub ส่วนใหญ่) และ PlayerGui (บาง Hub ที่ซ่อน UI ไว้ที่นี่)
+    ScanTarget(CoreGui)
+    ScanTarget(PlayerGui)
+end
 
-Rayfield:LoadConfiguration()
+StartProEngine()
+print("🌶️ Chilli Hub Translation [GOD TIER VERSION] Loaded Successfully! All Bugs Fixed.")
